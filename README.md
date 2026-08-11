@@ -5,17 +5,9 @@ A Claude Code skill that instructs Claude to minimize token and computation spen
 ## Install
 
 ```bash
-gh release download --repo LyuboVoynov/saving-private-tokens --pattern "*.skill" \
-  && unzip -o ai-cost-optimization.skill -d ~/.claude/skills \
-  && rm ai-cost-optimization.skill
-```
-
-No releases yet? Install directly from main:
-
-```bash
-curl -L https://github.com/LyuboVoynov/saving-private-tokens/raw/main/ai-cost-optimization.skill -o /tmp/skill.zip \
-  && unzip -o /tmp/skill.zip -d ~/.claude/skills \
-  && rm /tmp/skill.zip
+gh repo clone LyuboVoynov/saving-private-tokens /tmp/spt -- --depth=1 \
+  && cp -r /tmp/spt/ai-cost-optimization ~/.claude/skills/ \
+  && rm -rf /tmp/spt
 ```
 
 Then invoke in any Claude Code session:
@@ -39,7 +31,7 @@ When loaded, the skill directs Claude to:
 ## Files
 
 ```
-ai-cost-optimization.skill   ← zip archive, unpack to ~/.claude/skills/
+ai-cost-optimization/
 ├── SKILL.md                 ← operating instructions loaded by Claude
 └── references/
     ├── pricing-snapshot.md  ← model capability ladder for routing decisions
