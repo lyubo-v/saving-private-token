@@ -1,4 +1,4 @@
-# saving-private-tokens
+# saving-private-token
 
 A Claude Code skill that instructs Claude to minimize token and computation spend on every task.
 
