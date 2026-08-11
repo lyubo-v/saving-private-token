@@ -6,14 +6,14 @@ A Claude Code skill that instructs Claude to minimize token and computation spen
 
 ```bash
 gh repo clone LyuboVoynov/saving-private-tokens /tmp/spt -- --depth=1 \
-  && cp -r /tmp/spt/ai-cost-optimization ~/.claude/skills/ \
+  && cp -r /tmp/spt/token-manager ~/.claude/skills/ \
   && rm -rf /tmp/spt
 ```
 
 Then invoke in any Claude Code session:
 
 ```
-/ai-cost-optimization
+/token-manager
 ```
 
 ## What it does
@@ -31,7 +31,7 @@ When loaded, the skill directs Claude to:
 ## Files
 
 ```
-ai-cost-optimization/
+token-manager/
 ├── SKILL.md                 ← operating instructions loaded by Claude
 └── references/
     ├── pricing-snapshot.md  ← model capability ladder for routing decisions

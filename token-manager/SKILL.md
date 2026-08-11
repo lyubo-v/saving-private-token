@@ -1,5 +1,5 @@
 ---
-name: ai-cost-optimization
+name: token-manager
 description: "Apply on every task to minimize token and computation spend. Governs: task complexity classification, effort allocation, context filtering, output length discipline, extended thinking budgets, tool call minimization, and model tier routing. Load this whenever Claude operates in a cost-sensitive context, runs agentic loops, or needs to control token spend."
 ---
 
