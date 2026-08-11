@@ -5,7 +5,7 @@ A Claude Code skill that instructs Claude to minimize token and computation spen
 ## Install
 
 ```bash
-gh repo clone LyuboVoynov/saving-private-token /tmp/spt -- --depth=1 \
+gh repo clone lyubo-v/saving-private-token /tmp/spt -- --depth=1 \
   && cp -r /tmp/spt/token-manager ~/.claude/skills/ \
   && rm -rf /tmp/spt
 ```
