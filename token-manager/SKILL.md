@@ -9,7 +9,14 @@ Operating instructions for minimizing token and computation spend on every task.
 
 ## 1. Classify task complexity before doing anything else
 
-Before solving any request, classify it into one of four levels. This drives all subsequent effort allocation.
+Before any tool call or substantive output, state the complexity level. The required format scales with level — smaller gate for trivial tasks so the skill doesn't undercut itself:
+
+- **L0 or L1:** Output the bare tag (`L0` or `L1`) before answering. Nothing more required.
+- **L2 or L3:** Output `L[2|3] — [one-sentence rationale]. Budget: [brief description of reasoning depth and tool allowance].` before any tool call or substantive output.
+
+Skipping the tag entirely means the gate is being bypassed. A tag is the minimum visible artifact; its presence is what makes violations detectable.
+
+**If invoked mid-session (/token-manager):** Before resuming, audit the last 3 responses against these rules. For each, report: which rules were violated and what the correct behavior would have been. Then classify the current task and continue.
 
 **Level 0 — Trivial**
 Simple factual question, definition, short calculation, yes/no, formatting, obvious transformation, translation.
@@ -21,11 +28,11 @@ Basic troubleshooting, short recommendation, simple comparison, straightforward 
 
 **Level 2 — Moderate**
 Multi-step reasoning, non-trivial coding, planning, research synthesis, tasks requiring several dependent decisions.
-→ Decompose. Identify the minimum required subproblems. Solve only those. Verify key conclusions.
+→ Decompose. Identify the minimum required subproblems. Solve only those. Verify key conclusions. Call advisor before acting and before declaring done.
 
 **Level 3 — Complex**
 Large architecture problems, difficult debugging, multi-constraint optimization, ambiguous decisions with significant downstream consequences.
-→ Identify dependencies. Solve high-impact components first. Allocate reasoning only where uncertainty exists. Produce the smallest complete answer.
+→ Identify dependencies. Solve high-impact components first. Allocate reasoning only where uncertainty exists. Produce the smallest complete answer. Call advisor before acting and before declaring done.
 
 ## 2. Spend reasoning where it changes the answer
 
@@ -45,6 +52,8 @@ Do not distribute effort uniformly. Spend computation where uncertainty and cons
 - The task was already solved earlier in the conversation
 
 **Progressive escalation:** Attempt the simplest valid solution first. Escalate reasoning depth only if uncertainty remains after a direct attempt. Stop as soon as the objective is understood, a valid solution exists, constraints are satisfied, and confidence is sufficient. Do not continue exploring alternatives solely because they exist.
+
+**Advisor checkpoints for L2+:** The required sequence is: classify → call advisor before acting → act → call advisor before declaring done. Skipping either checkpoint on an L2+ task is a violation reportable under the mid-session audit. Requires the advisor tool; if unavailable, note the skip explicitly.
 
 ## 3. Filter and prioritize context before processing
 
@@ -90,6 +99,8 @@ Do not include: restatements of the question, generic introductions, conclusions
 
 Prefer: **Answer → necessary explanation → necessary caveat**
 
+**Mandatory pruning step:** After drafting any response, go sentence by sentence. For each sentence ask: can this be removed without reducing correctness or usefulness? If yes, remove it. This step is not optional — skipping it means the output discipline rule was not applied. The pruning pass is recorded as item 5 in the section 8 gate.
+
 Format discipline:
 - Set `max_tokens` per use case; never default to the model maximum
 - Prefer structured outputs when a machine reads the result: `Return JSON: {name, score, reason}` costs fewer tokens than a verbose prose instruction — both in the prompt and in the output it produces
@@ -100,7 +111,11 @@ Instruction deduplication: consolidate overlapping instructions. Instead of "be 
 
 ## 6. Use tools only when the task requires them
 
-Before invoking any tool, ask: can this task be solved reliably without it? If yes, do not invoke it.
+Before invoking any tool, answer both questions aloud:
+1. Can this task be solved reliably without this tool?
+2. Is this result already available from earlier in this conversation?
+
+If yes to either, do not call the tool. Invoking a tool without first answering both questions is a gate violation.
 
 When a tool is necessary:
 - Minimize the input sent to it
@@ -126,13 +141,14 @@ Verify current model capabilities at https://docs.anthropic.com before routing. 
 
 ## 8. Quality-control gate before outputting
 
-Before finalizing any response:
+Before finalizing any response, answer each of the following explicitly. This is a hold — do not send until all conditions pass.
 
 1. Did I answer the actual request?
 2. Did I preserve all important constraints (especially negations, numbers, conditions)?
 3. Did I introduce unsupported assumptions?
 4. Is anything essential missing?
-5. Can any content be removed without reducing correctness or usefulness?
+5. Did I complete the mandatory sentence-pruning pass from section 5? If no, do it now.
 6. Did I use more reasoning, context, or tool calls than the task warranted?
+7. For L2+ tasks: did I call advisor before acting AND before declaring done? If no, make those calls before sending.
 
-If content can be removed without reducing quality, remove it. If the answer is already complete, stop — do not consume remaining output budget because it exists.
+If anything in items 5 or 7 is unresolved, resolve it before outputting. The gate is not a checklist to skim.
