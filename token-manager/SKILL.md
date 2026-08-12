@@ -75,7 +75,25 @@ When context is large, process it in this priority order:
 
 **Compression safety:** When summarizing or pruning, never elide negations, exact numbers, units, dates, names, identifiers, hard conditions, or exceptions. These change meaning, not just length.
 
-## 4. Budget extended thinking per task type
+## 4. Context window ceiling — reset at 200k tokens
+
+Claude models perform optimally within a 200k-token context window. As context grows beyond this threshold, reasoning quality degrades, retrieval becomes unreliable, and cost-per-useful-output rises steeply. Treat 200k as a hard ceiling, not a soft guideline.
+
+**Trigger:** When cumulative session tokens (input + prior output) approach 180k, initiate compression before the next substantive response. At 200k, a reset is mandatory.
+
+**Compression protocol:**
+1. Extract minimum essential state: original task or goal, key decisions and their rationale, hard constraints and safety conditions, current working output or intermediate result, any facts that cannot be cheaply re-derived.
+2. Discard: conversational scaffolding, superseded attempts, already-resolved subproblems, tool-call outputs that contributed only to a now-known answer, background not referenced in the last 3 responses.
+3. Write a **State Digest** — a compact prose block (target ≤2k tokens) capturing the items from step 1. This becomes the effective start of the next context window.
+4. Confirm the digest covers: (a) task objective, (b) all open constraints and exceptions, (c) current progress, (d) next steps.
+
+**After reset:** Begin the next turn as if the State Digest is the full prior context. Do not re-read discarded material unless the user explicitly requests it.
+
+**Never compress:** negations, exact numbers, units, identifiers, user decisions, or safety constraints — these must survive verbatim into the digest.
+
+**Compression safety check (gate item before reset):** Can the task resume correctly from the digest alone, without access to any discarded material? If no, extract more before discarding.
+
+## 5. Budget extended thinking per task type
 
 Extended thinking spends output tokens on reasoning traces before the final answer.
 
@@ -91,7 +109,7 @@ Extended thinking spends output tokens on reasoning traces before the final answ
 
 Set a reasoning token budget matched to the task complexity level. Never leave it uncapped. Refer to current API docs for model-specific parameters, as they change with each release.
 
-## 5. Generate the shortest complete output
+## 6. Generate the shortest complete output
 
 Output tokens cost roughly 5x input tokens. Every output token not generated is the cheapest output token.
 
@@ -99,7 +117,7 @@ Do not include: restatements of the question, generic introductions, conclusions
 
 Prefer: **Answer → necessary explanation → necessary caveat**
 
-**Mandatory pruning step:** After drafting any response, go sentence by sentence. For each sentence ask: can this be removed without reducing correctness or usefulness? If yes, remove it. This step is not optional — skipping it means the output discipline rule was not applied. The pruning pass is recorded as item 5 in the section 8 gate.
+**Mandatory pruning step:** After drafting any response, go sentence by sentence. For each sentence ask: can this be removed without reducing correctness or usefulness? If yes, remove it. This step is not optional — skipping it means the output discipline rule was not applied. The pruning pass is recorded as item 5 in the section 9 gate.
 
 Format discipline:
 - Set `max_tokens` per use case; never default to the model maximum
@@ -109,7 +127,7 @@ Format discipline:
 
 Instruction deduplication: consolidate overlapping instructions. Instead of "be concise, avoid detail, keep it short, don't be verbose" use one: "be concise; include only what completes the task."
 
-## 6. Use tools only when the task requires them
+## 7. Use tools only when the task requires them
 
 Before invoking any tool, answer both questions aloud:
 1. Can this task be solved reliably without this tool?
@@ -124,7 +142,7 @@ When a tool is necessary:
 - Batch compatible operations when that reduces overhead
 - Never call the same tool twice for information already available
 
-## 7. Route to the minimum capable model tier
+## 8. Route to the minimum capable model tier
 
 The Claude lineup: Haiku → Sonnet → Opus → Fable. Start at the lowest tier plausible for the classified task level. Escalate only when the current tier demonstrably fails.
 
@@ -139,7 +157,7 @@ The Claude lineup: Haiku → Sonnet → Opus → Fable. Start at the lowest tier
 
 Verify current model capabilities at https://docs.anthropic.com before routing. `references/pricing-snapshot.md` shows the current ladder for orientation; `references/cost-formulas.md` has the break-even math for escalation and caching decisions.
 
-## 8. Quality-control gate before outputting
+## 9. Quality-control gate before outputting
 
 Before finalizing any response, answer each of the following explicitly. This is a hold — do not send until all conditions pass.
 
@@ -150,5 +168,6 @@ Before finalizing any response, answer each of the following explicitly. This is
 5. Did I complete the mandatory sentence-pruning pass from section 5? If no, do it now.
 6. Did I use more reasoning, context, or tool calls than the task warranted?
 7. For L2+ tasks: did I call advisor before acting AND before declaring done? If no, make those calls before sending.
+8. Is cumulative session context approaching 180k tokens? If yes, run the section 4 compression protocol before continuing.
 
-If anything in items 5 or 7 is unresolved, resolve it before outputting. The gate is not a checklist to skim.
+If anything in items 5, 7, or 8 is unresolved, resolve it before outputting. The gate is not a checklist to skim.
