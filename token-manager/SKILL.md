@@ -11,7 +11,8 @@ Operating instructions for minimizing token and computation spend on every task.
 
 Before any tool call or substantive output, state the complexity level. The required format scales with level — smaller gate for trivial tasks so the skill doesn't undercut itself:
 
-- **L0 or L1:** Output the bare tag (`L0` or `L1`) before answering. Nothing more required.
+- **L0:** No tag required — just answer directly.
+- **L1:** Output the bare tag (`L1`) before answering. Nothing more required.
 - **L2 or L3:** Output `L[2|3] — [one-sentence rationale]. Budget: [brief description of reasoning depth and tool allowance].` before any tool call or substantive output.
 
 Skipping the tag entirely means the gate is being bypassed. A tag is the minimum visible artifact; its presence is what makes violations detectable.
@@ -129,7 +130,7 @@ Instruction deduplication: consolidate overlapping instructions. Instead of "be 
 
 ## 7. Use tools only when the task requires them
 
-Before invoking any tool, answer both questions aloud:
+Before invoking any tool, answer both questions:
 1. Can this task be solved reliably without this tool?
 2. Is this result already available from earlier in this conversation?
 
@@ -144,10 +145,12 @@ When a tool is necessary:
 
 ## 8. Route to the minimum capable model tier
 
-The Claude lineup: Haiku → Sonnet → Opus → Fable. Start at the lowest tier plausible for the classified task level. Escalate only when the current tier demonstrably fails.
+**Default model: claude-sonnet-4-6** — the most efficient model for the widest range of tasks. Use it unless there is a concrete reason to go lower or higher.
+
+The Claude lineup: Haiku → Sonnet (default: claude-sonnet-4-6) → Opus → Fable. Start at the lowest tier plausible for the classified task level. Escalate only when the current tier demonstrably fails.
 
 **Haiku-class:** Level 0–1 tasks. Classification, extraction, formatting, simple Q&A, short-form summarization.
-**Sonnet-class:** Level 1–2 tasks. Most coding, analysis, writing, sustained reasoning, agentic loops.
+**Sonnet-class (default):** Level 1–2 tasks. Most coding, analysis, writing, sustained reasoning, agentic loops. Use claude-sonnet-4-6 unless escalation is warranted.
 **Opus-class:** Level 2–3 tasks. Complex multi-step reasoning, research synthesis, tasks requiring sustained coherence over long outputs.
 **Fable-class:** Level 3 tasks where quality is the dominant variable. Highest latency.
 
@@ -159,15 +162,9 @@ Verify current model capabilities at https://docs.anthropic.com before routing. 
 
 ## 9. Quality-control gate before outputting
 
-Before finalizing any response, answer each of the following explicitly. This is a hold — do not send until all conditions pass.
+Do not send until all four pass:
 
-1. Did I answer the actual request?
-2. Did I preserve all important constraints (especially negations, numbers, conditions)?
-3. Did I introduce unsupported assumptions?
-4. Is anything essential missing?
-5. Did I complete the mandatory sentence-pruning pass from section 5? If no, do it now.
-6. Did I use more reasoning, context, or tool calls than the task warranted?
-7. For L2+ tasks: did I call advisor before acting AND before declaring done? If no, make those calls before sending.
-8. Is cumulative session context approaching 180k tokens? If yes, run the section 4 compression protocol before continuing.
-
-If anything in items 5, 7, or 8 is unresolved, resolve it before outputting. The gate is not a checklist to skim.
+1. Did I answer the actual request, preserving all constraints (negations, numbers, conditions)?
+2. Did I complete the mandatory pruning pass? If no, do it now.
+3. For L2+ tasks: did I call advisor before acting AND before declaring done? If no, do so before sending.
+4. Is context approaching 180k tokens? If yes, run the section 4 compression protocol first.
